@@ -1,0 +1,36 @@
+{
+    "file_name": "Test1.xlsx",
+    "worksheets": [
+        {
+            "sheet": "Work1",
+            "cells": [
+                {
+                    "cell": "A1",
+                    "value": "TESTE",
+                    "style": {
+                        "borders": [
+                            {
+                                "type": "left",
+                                "color": "red",
+                                "style": 3
+                            },
+                            {
+                                "type": "bottom",
+                                "color": "black",
+                                "style": 5
+                            }
+                        ]
+                    }
+                },
+                {
+                    "cell": "B5",
+                    "value": "TESTE 2"
+                },
+                {
+                    "cell": "A3",
+                    "value": "2"
+                }
+            ]
+        }
+    ]
+}
