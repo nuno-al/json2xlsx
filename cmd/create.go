@@ -25,7 +25,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/xuri/excelize/v2"
@@ -107,8 +106,7 @@ var createCmd = &cobra.Command{
 	Short: "Creates a xlsx file from json.",
 	Long:  `Creates a xlsx file from json.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		path := strings.Join(args, "")
-		j, err := os.Open(path)
+		j, err := os.Open(args[0])
 		if err != nil {
 			return err
 		}
@@ -139,7 +137,7 @@ var createCmd = &cobra.Command{
 
 		f.DeleteSheet(f.GetSheetName(0)) // Delete default worksheet
 
-		if err := f.SaveAs(book.FileName); err != nil {
+		if err := f.SaveAs(args[1]); err != nil {
 			return err
 		}
 
