@@ -1,5 +1,4 @@
 {
-    "file_name": "Test1.xlsx",
     "worksheets": [
         {
             "sheet": "Work1",
@@ -7,16 +6,20 @@
                 {
                     "cell": "A1",
                     "value": "TESTE",
+                    "merge": "B2",
                     "style": {
+                        "alignment": {
+                            "horizontal": "center"
+                        },
                         "borders": [
                             {
                                 "type": "left",
-                                "color": "red",
-                                "style": 3
+                                "color": "FF0000",
+                                "style": 5
                             },
                             {
                                 "type": "bottom",
-                                "color": "black",
+                                "color": "000000",
                                 "style": 5
                             }
                         ]
@@ -24,11 +27,30 @@
                 },
                 {
                     "cell": "B5",
-                    "value": "TESTE 2"
+                    "value": "TESTE 2",
+                    "style": {
+                        "borders": [
+                            {
+                                "type": "bottom",
+                                "color": "00FFFF",
+                                "style": 5
+                            }
+                        ],
+                        "fill": {
+                            "type": "pattern",
+                            "color": ["E0EBF5"],
+                            "pattern": 1
+                        }
+                    }
                 },
                 {
                     "cell": "A3",
-                    "value": "2"
+                    "value": 2,
+                    "style": {
+                        "alignment": {
+                            "horizontal": "center"
+                        }
+                    }
                 }
             ]
         }

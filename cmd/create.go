@@ -31,7 +31,6 @@ import (
 )
 
 type Book struct {
-	FileName   string      `json:"file_name"`
 	Worksheets []Worksheet `json:"worksheets"`
 }
 
@@ -41,20 +40,21 @@ type Worksheet struct {
 }
 
 type Cell struct {
-	CellName string         `json:"cell"`
-	Value    string         `json:"value"`
-	Style    excelize.Style `json:"style"`
+	CellName string      `json:"cell"`
+	Value    interface{} `json:"value"`
+	Style    *Style      `json:"style,omitempty"`
+	Merge    *string     `json:"merge,omitempty"`
 }
 
 type Style struct {
-	Borders       []Border   `json:"borders"`
-	Fill          Fill       `json:"fill"`
-	Font          Font       `json:"font"`
-	Alignment     Alignment  `json:"alignment"`
-	Protection    Protection `json:"protection"`
-	NumFmt        int        `json:"num_fmt"`
-	DecimalPlaces int        `json:"decimal_places"`
-	CustomNumFmt  string     `json:"custom_num_fmt"`
+	Borders       []Border    `json:"borders,omitempty"`
+	Fill          *Fill       `json:"fill,omitempty"`
+	Font          *Font       `json:"font,omitempty"`
+	Alignment     *Alignment  `json:"alignment,omitempty"`
+	Protection    *Protection `json:"protection,omitempty"`
+	NumFmt        *int        `json:"num_fmt,omitempty"`
+	DecimalPlaces *int        `json:"decimal_places,omitempty"`
+	CustomNumFmt  *string     `json:"custom_num_fmt,omitempty"`
 }
 
 type Border struct {
@@ -72,7 +72,7 @@ type Font struct {
 	Strike       bool    `json:"strike"`
 	Color        string  `json:"color"`
 	ColorIndexed int     `json:"color_indexed"`
-	ColorTheme   int     `json:"color_theme"`
+	ColorTheme   *int    `json:"color_theme"`
 	ColorTint    float64 `json:"color_tint"`
 	VertAlign    string  `json:"vert_align"`
 }
@@ -80,7 +80,7 @@ type Font struct {
 type Fill struct {
 	Type    string   `json:"type"`
 	Pattern int      `json:"pattern"`
-	Colors  []string `json:"colors"`
+	Color   []string `json:"color"`
 	Shading int      `json:"shading"`
 }
 
@@ -106,7 +106,10 @@ var createCmd = &cobra.Command{
 	Short: "Creates a xlsx file from json.",
 	Long:  `Creates a xlsx file from json.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		j, err := os.Open(args[0])
+		var err error
+		var j *os.File
+
+		j, err = os.Open(args[0])
 		if err != nil {
 			return err
 		}
@@ -120,24 +123,78 @@ var createCmd = &cobra.Command{
 		defer f.Close()
 
 		json.Unmarshal(b, &book)
-		for s := 0; s < len(book.Worksheets); s++ {
-			sheet := book.Worksheets[s]
 
-			_, err := f.NewSheet(sheet.SheetName)
+		for _, sheet := range book.Worksheets {
+
+			_, err = f.NewSheet(sheet.SheetName)
 			if err != nil {
 				return err
 			}
 
-			for c := 0; c < len(sheet.Cells); c++ {
-				cell := sheet.Cells[c]
+			for _, cell := range sheet.Cells {
 
-				f.SetCellValue(sheet.SheetName, cell.CellName, cell.Value)
+				err = f.SetCellValue(sheet.SheetName, cell.CellName, cell.Value)
+				if err != nil {
+					return err
+				}
+
+				if cell.Merge != nil {
+					f.MergeCell(sheet.SheetName, cell.CellName, *cell.Merge)
+				}
+
+				if cell.Style != nil {
+
+					style := excelize.Style{}
+
+					for _, val := range cell.Style.Borders {
+						border := excelize.Border(val)
+						style.Border = append(style.Border, border)
+					}
+
+					if cell.Style.Fill != nil {
+						style.Fill = excelize.Fill(*cell.Style.Fill)
+					}
+
+					if cell.Style.Font != nil {
+						font := excelize.Font(*cell.Style.Font)
+						style.Font = &font
+					}
+
+					if cell.Style.Protection != nil {
+						protection := excelize.Protection(*cell.Style.Protection)
+						style.Protection = &protection
+					}
+
+					if cell.Style.Alignment != nil {
+						alignment := excelize.Alignment(*cell.Style.Alignment)
+						style.Alignment = &alignment
+					}
+
+					if cell.Style.NumFmt != nil {
+						style.NumFmt = *cell.Style.NumFmt
+					}
+
+					if cell.Style.DecimalPlaces != nil {
+						style.DecimalPlaces = *cell.Style.DecimalPlaces
+					}
+
+					if cell.Style.CustomNumFmt != nil {
+						style.CustomNumFmt = cell.Style.CustomNumFmt
+					}
+
+					s, err := f.NewStyle(&style)
+					if err != nil {
+						return err
+					}
+					f.SetCellStyle(sheet.SheetName, cell.CellName, cell.CellName, s)
+				}
 			}
 		}
 
 		f.DeleteSheet(f.GetSheetName(0)) // Delete default worksheet
 
-		if err := f.SaveAs(args[1]); err != nil {
+		err = f.SaveAs(args[1])
+		if err != nil {
 			return err
 		}
 
