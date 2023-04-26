@@ -35,8 +35,20 @@ type Book struct {
 }
 
 type Worksheet struct {
-	SheetName string `json:"sheet"`
-	Cells     []Cell `json:"cells"`
+	SheetName string   `json:"sheet"`
+	Cells     []Cell   `json:"cells"`
+	Columns   []Column `json:"columns"`
+	Rows      []Row    `json:"rows"`
+}
+
+type Column struct {
+	Name  string   `json:"column"`
+	Width *float64 `json:"width,omitempty"`
+}
+
+type Row struct {
+	Index  int      `json:"row"`
+	Height *float64 `json:"height,omitempty"`
 }
 
 type Cell struct {
@@ -129,6 +141,20 @@ var createCmd = &cobra.Command{
 			_, err = f.NewSheet(sheet.SheetName)
 			if err != nil {
 				return err
+			}
+
+			for _, column := range sheet.Columns {
+				err := f.SetColWidth(sheet.SheetName, column.Name, column.Name, *column.Width)
+				if err != nil {
+					return err
+				}
+			}
+
+			for _, row := range sheet.Rows {
+				err := f.SetRowHeight(sheet.SheetName, row.Index, *row.Height)
+				if err != nil {
+					return err
+				}
 			}
 
 			for _, cell := range sheet.Cells {
